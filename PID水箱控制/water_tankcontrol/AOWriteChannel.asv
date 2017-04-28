@@ -1,0 +1,31 @@
+%函数名称  AOWriteChannel(obj,ChannelNum,fValue)
+%入口参数  obj                      被打开的串口对象
+%         ChannelNum               所要写入通道的通道号
+%         fValue                   所要写入的电流值值单位mA 范围4~20mA
+%说   明  该函数用于写某个通道的电流值 单位mA
+function staus=AOWriteChannel(obj,ChannelNum,fValue)
+global AoFlag
+if(fValue<=4)
+    fValue=4;
+end
+if(fValue>=20)
+    fValue=20;
+end
+low=uint8(bitand(uint16(fValue*100),uint16(255)));
+high=uint8(bitshift(uint16(fValue*100),-8));
+senddata=[2 6 0 ChannelNum high low];
+crccode=CalCheckCRC(senddata);
+senddata=[senddata crccode];
+fwrite(obj,senddata,'uint8');
+pause(0.09);
+fwrite(obj,senddata,'uint8');
+pause(0.09);
+fwrite(obj,senddata,'uint8');
+ pause(0.05);
+ if(AoFlag==1)
+   staus=1;
+   AoFlag=0;
+ else
+   staus =0; 
+ end
+end
